@@ -1,0 +1,78 @@
+package br.com.management.api_library.controller;
+
+
+import br.com.management.api_library.dto.BookCreateDTO;
+import br.com.management.api_library.dto.BookResponseDTO;
+import br.com.management.api_library.dto.BookUpdateDTO;
+import br.com.management.api_library.service.BookService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api_products/books")
+public class BookController {
+
+    private final BookService bookService;
+
+    public BookController(BookService bookService) {
+        this.bookService = bookService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<BookResponseDTO>> findAll() {
+        List<BookResponseDTO> booksDTO = bookService.getAllBooks();
+        return ResponseEntity.ok(booksDTO);
+    }
+
+    @GetMapping("/title")
+    public ResponseEntity<BookResponseDTO> findByTitle(@RequestParam("title") String bookTitle) {
+        BookResponseDTO bookDTO = bookService.getBookByTitle(bookTitle);
+        return ResponseEntity.ok(bookDTO);
+    }
+
+    @GetMapping("/genre")
+    public ResponseEntity<List<BookResponseDTO>> findByGenre(@RequestParam("genre") String genre) {
+        List<BookResponseDTO> booksDTO = bookService.getBooksByGenre(genre);
+        return ResponseEntity.ok(booksDTO);
+    }
+
+    @GetMapping("/author")
+    public ResponseEntity<List<BookResponseDTO>> findByAuthor(@RequestParam("author") String author) {
+        List<BookResponseDTO> bookDTO = bookService.getByAuthor(author);
+        return ResponseEntity.ok(bookDTO);
+    }
+
+    @GetMapping("/publisher")
+    public ResponseEntity<List<BookResponseDTO>> findByPublisher(@RequestParam("publisher") String publisher) {
+        List<BookResponseDTO> bookDTO = bookService.getByPublisher(publisher);
+        return ResponseEntity.ok(bookDTO);
+    }
+
+    public ResponseEntity<BookResponseDTO> create(@Valid @RequestBody BookCreateDTO bookCreateDTO) {
+        BookResponseDTO createBook = bookService.createBook(bookCreateDTO);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(createBook.id())
+                .toUri();
+        return ResponseEntity.created(location).body(createBook);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BookResponseDTO> update(@PathVariable Long id, @Valid @RequestBody BookUpdateDTO bookUpdateDTO) {
+        BookResponseDTO updatedBook = bookService.updateBook(id, bookUpdateDTO);
+        return ResponseEntity.ok(updatedBook);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        bookService.deleteBook(id);
+        return ResponseEntity.noContent().build();
+    }
+}
