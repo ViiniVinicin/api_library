@@ -1,6 +1,6 @@
 package br.com.management.api_library.dto;
 
-public record BookUpdateDTO (
+public record BookRequestDTO(
         String title,
         String author,
         String publisher,
@@ -9,5 +9,5 @@ public record BookUpdateDTO (
         String language,
         String isbn,
         int pages
-){
+) {
 }

@@ -31,10 +31,10 @@ public class BookService {
                 .toList();
     }
 
-    public BookResponseDTO getBookByTitle(String bookTitle) {
+    public BookResponseDTO getBookByTitle(String title) {
 
-        Book books = bookRepository.findByTitleIgnoringCase(bookTitle)
-                .orElseThrow(() -> new ResourceNotFoundException("Erro: Livro não encontrado com o título: " + bookTitle));
+        Book books = bookRepository.findByTitleIgnoringCase(title)
+                .orElseThrow(() -> new ResourceNotFoundException("Erro: Livro não encontrado com o título: " + title));
         return toResponseDTO(books);
     }
 
@@ -80,9 +80,9 @@ public class BookService {
 
     public BookResponseDTO createBook(BookCreateDTO createDTO) {
 
-        bookRepository.findByTitleIgnoringCase(createDTO.bookTitle())
+        bookRepository.findByTitleIgnoringCase(createDTO.title())
                 .ifPresent(book -> {
-                    throw new BookAlreadyExistsException("Erro: O livro com o título: " + createDTO.bookTitle() + " já existe.");
+                    throw new BookAlreadyExistsException("Erro: O livro com o título: " + createDTO.title() + " já existe.");
                 });
 
         Book newBook = new Book();
@@ -112,20 +112,18 @@ public class BookService {
     private BookResponseDTO toResponseDTO(Book book) {
         return new BookResponseDTO(
                 book.getId(),
-                book.getBookTitle(),
+                book.getTitle(),
                 book.getAuthor(),
                 book.getPublisher(),
                 book.getGenre(),
                 book.getDescription(),
                 book.getLanguage(),
-                book.getPages(),
-                book.getPublicationYear(),
-                book.getAvailableCopies()
+                book.getPages()
         );
     }
 
     private void mapDtoToEntity(Book book, BookCreateDTO createDTO) {
-        book.setBookTitle(createDTO.bookTitle());
+        book.setTitle(createDTO.title());
         book.setAuthor(createDTO.author());
         book.setPublisher(createDTO.publisher());
         book.setGenre(createDTO.genre());
@@ -133,13 +131,10 @@ public class BookService {
         book.setLanguage(createDTO.language());
         book.setIsbn(createDTO.isbn());
         book.setPages(createDTO.pages());
-        book.setPublicationYear(createDTO.publicationYear());
-        book.setAvailableCopies(createDTO.availableCopies());
-        book.setAvailable(createDTO.availableCopies() > 0);
     }
 
     private void mapDtoToEntity(Book book, BookUpdateDTO updateDTO) {
-        book.setBookTitle(updateDTO.bookTitle());
+        book.setTitle(updateDTO.title());
         book.setAuthor(updateDTO.author());
         book.setPublisher(updateDTO.publisher());
         book.setGenre(updateDTO.genre());
@@ -147,9 +142,6 @@ public class BookService {
         book.setLanguage(updateDTO.language());
         book.setIsbn(updateDTO.isbn());
         book.setPages(updateDTO.pages());
-        book.setPublicationYear(updateDTO.publicationYear());
-        book.setAvailableCopies(updateDTO.availableCopies());
-        book.setAvailable(updateDTO.availableCopies() > 0);
     }
 
 }
