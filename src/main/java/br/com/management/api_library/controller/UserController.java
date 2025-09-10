@@ -2,17 +2,16 @@ package br.com.management.api_library.controller;
 
 import br.com.management.api_library.dto.UserCreateDTO;
 import br.com.management.api_library.dto.UserResponseDTO;
-import br.com.management.api_library.model.User;
 import br.com.management.api_library.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/library_api/users")// Usando o seu padrão de URL
@@ -27,41 +26,40 @@ public class UserController {
 
     // Endpoint para registrar um novo usuário
     @PostMapping
-    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserCreateDTO createDTO) {
-        User createdUser = userService.createUser(createDTO);
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserCreateDTO userCreateDTO) {
+        UserResponseDTO createdUser = userService.createUser(userCreateDTO);
 
         // Cria a URI de resposta para o novo recurso criado (boa prática REST)
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(createdUser.getId())
+                .buildAndExpand(createdUser.id())
                 .toUri();
-
-        return ResponseEntity.created(location).body(toResponseDTO(createdUser));
+        return ResponseEntity.created(location).body(createdUser);
     }
 
-    // Endpoint para listar todos os usuários
     @GetMapping
-    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
-        List<UserResponseDTO> userDtos = users.stream().map(this::toResponseDTO).collect(Collectors.toList());
-        return ResponseEntity.ok(userDtos);
+    public ResponseEntity<List<UserResponseDTO>> findAll() {
+        List<UserResponseDTO> usersDTO = userService.getAllUsers();
+        return ResponseEntity.ok(usersDTO);
     }
 
-    // Endpoint para buscar um usuário por ID
-    @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
-        User user = userService.getUserById(id);
-        return ResponseEntity.ok(toResponseDTO(user));
+    @GetMapping("/{fullName}")
+    public ResponseEntity<UserResponseDTO> findByFullName(@PathVariable String fullName) {
+        UserResponseDTO usersDTO = userService.getByFullName(fullName);
+        return ResponseEntity.ok(usersDTO);
     }
 
-    // Método auxiliar para converter a Entidade User para o DTO de resposta
-    private UserResponseDTO toResponseDTO(User user) {
-        UserResponseDTO dto = new UserResponseDTO();
-        dto.setId(user.getId());
-        dto.setUsername(user.getUsername());
-        dto.setEmail(user.getEmail());
-        dto.setFullName(user.getFullName());
-        return dto;
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UserCreateDTO userCreateDTO) {
+        UserResponseDTO updatedUser = userService.updateUser(id, userCreateDTO);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 }
