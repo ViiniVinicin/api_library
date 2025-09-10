@@ -103,10 +103,10 @@ public class UserService implements UserDetailsService {
     }
 
     public void deleteUser(Long id) {
-        User user = userRepository.findById(id)
+        userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o ID: " + id)); // Futuramente, use uma exceção customizada.
 
-        userRepository.delete(user);
+        userRepository.deleteById(id);
     }
 
     private UserResponseDTO toResponseDTO(User user) {
