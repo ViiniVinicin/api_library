@@ -73,12 +73,13 @@ public class UserService implements UserDetailsService {
     }
 
     public List<UserResponseDTO> getAllUsers() {
-        return userRepository.findAll();
-    }
 
-    public User getUserById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário не encontrado com o ID: " + id)); // Futuramente, use uma exceção customizada.
+        List<User> users = userRepository.findAll();
+
+        return userRepository.findAll()
+                .stream()
+                .map(this::toResponseDTO)
+                .toList();
     }
 
     public UserResponseDTO getByFullName(String fullName) {
