@@ -24,6 +24,19 @@ public class BookController {
         this.bookService = bookService;
     }
 
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<BookResponseDTO> create(@Valid @RequestBody BookCreateDTO bookCreateDTO) {
+        BookResponseDTO createBook = bookService.createBook(bookCreateDTO);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(createBook.id())
+                .toUri();
+        return ResponseEntity.created(location).body(createBook);
+    }
+
     @GetMapping
     public ResponseEntity<List<BookResponseDTO>> findAll() {
         List<BookResponseDTO> booksDTO = bookService.getAllBooks();
@@ -52,19 +65,6 @@ public class BookController {
     public ResponseEntity<List<BookResponseDTO>> findByPublisher(@RequestParam("publisher") String publisher) {
         List<BookResponseDTO> bookDTO = bookService.getByPublisher(publisher);
         return ResponseEntity.ok(bookDTO);
-    }
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<BookResponseDTO> create(@Valid @RequestBody BookCreateDTO bookCreateDTO) {
-        BookResponseDTO createBook = bookService.createBook(bookCreateDTO);
-
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(createBook.id())
-                .toUri();
-        return ResponseEntity.created(location).body(createBook);
     }
 
     @PutMapping("/{id}")
