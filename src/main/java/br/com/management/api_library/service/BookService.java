@@ -21,6 +21,20 @@ public class BookService {
         this.bookRepository = bookRepository;
     }
 
+    public BookResponseDTO createBook(BookCreateDTO createDTO) {
+
+        bookRepository.findByTitleIgnoringCase(createDTO.title())
+                .ifPresent(book -> {
+                    throw new BookAlreadyExistsException("Erro: O livro com o título: " + createDTO.title() + " já existe.");
+                });
+
+        Book newBook = new Book();
+        mapDtoToEntity(newBook, createDTO);
+
+        Book savedBook = bookRepository.save(newBook);
+        return toResponseDTO(savedBook);
+    }
+
     public List<BookResponseDTO> getAllBooks() {
 
         List<Book> books = bookRepository.findAll();
@@ -76,20 +90,6 @@ public class BookService {
                     .map(this::toResponseDTO)
                     .toList();
         }
-    }
-
-    public BookResponseDTO createBook(BookCreateDTO createDTO) {
-
-        bookRepository.findByTitleIgnoringCase(createDTO.title())
-                .ifPresent(book -> {
-                    throw new BookAlreadyExistsException("Erro: O livro com o título: " + createDTO.title() + " já existe.");
-                });
-
-        Book newBook = new Book();
-        mapDtoToEntity(newBook, createDTO);
-
-        Book savedBook = bookRepository.save(newBook);
-        return toResponseDTO(savedBook);
     }
 
     public BookResponseDTO updateBook(Long id, @Valid BookUpdateDTO updateDTO) {
