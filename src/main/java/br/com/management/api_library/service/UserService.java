@@ -2,6 +2,7 @@ package br.com.management.api_library.service;
 
 import br.com.management.api_library.dto.UserCreateDTO;
 import br.com.management.api_library.dto.UserResponseDTO;
+import br.com.management.api_library.exception.EmailAlreadyExistsException;
 import br.com.management.api_library.exception.RoleNotFoundException;
 import br.com.management.api_library.exception.UserNotFoundException;
 import br.com.management.api_library.model.Role;
@@ -56,6 +57,12 @@ public class UserService implements UserDetailsService {
     }
 
     public UserResponseDTO createUser(UserCreateDTO createDTO) {
+
+        userRepository.findByEmailIgnoreCase(createDTO.getEmail())
+                .ifPresent(user -> {
+                    throw new EmailAlreadyExistsException("Erro: O e-mail '" + createDTO.getEmail() + "' já está cadastrado.");
+                });
+
         User newUser = new User();
         newUser.setUsername(createDTO.getUsername());
         newUser.setEmail(createDTO.getEmail());

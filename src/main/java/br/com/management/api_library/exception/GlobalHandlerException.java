@@ -96,7 +96,18 @@ public class GlobalHandlerException {
 
     @ExceptionHandler(BookAlreadyExistsException.class)
     public ResponseEntity<ErrorResponseDTO> handleBookAlreadyExistsException(BookAlreadyExistsException ex, HttpServletRequest request) {
-        log.warn("--- CAPTUROU BookAlreadyExistsException ---");
+        var errorResponse = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(), // 409
+                "Conflict",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponseDTO> handleEmailAlreadyExistsException(EmailAlreadyExistsException ex, HttpServletRequest request) {
         var errorResponse = new ErrorResponseDTO(
                 LocalDateTime.now(),
                 HttpStatus.CONFLICT.value(), // 409
