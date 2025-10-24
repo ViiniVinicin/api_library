@@ -23,9 +23,9 @@ public class BookService {
 
     public BookResponseDTO createBook(BookCreateDTO createDTO) {
 
-        bookRepository.findByTitleIgnoringCase(createDTO.title())
-                .ifPresent(book -> {
-                    throw new BookAlreadyExistsException("Erro: O livro com o título: " + createDTO.title() + " já existe.");
+        bookRepository.findByTitleIgnoringCase(createDTO.isbn())
+                .ifPresent(existingBook -> {
+                    throw new BookAlreadyExistsException("Erro: O livro com o ISBN: " + createDTO.isbn() + " já existe.");
                 });
 
         Book newBook = new Book();
