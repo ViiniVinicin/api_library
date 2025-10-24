@@ -86,13 +86,13 @@ public class UserService implements UserDetailsService {
 
     public UserResponseDTO getByFullName(String fullName) {
         User user = userRepository.findByFullName(fullName)
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com o nome completo: " + fullName)); // Futuramente, use uma exceção customizada.
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com o nome: " + fullName));
         return toResponseDTO(user);
     }
 
     public UserResponseDTO updateUser(Long id, @Valid UserCreateDTO updateDTO) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com o ID: " + id)); // Futuramente, use uma exceção customizada.
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com o ID: " + id));
 
         mapDtoToEntity(existingUser, updateDTO);
 
@@ -106,7 +106,7 @@ public class UserService implements UserDetailsService {
 
     public void deleteUser(Long id) {
         userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com o ID: " + id)); // Futuramente, use uma exceção customizada.
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com o ID: " + id));
 
         userRepository.deleteById(id);
     }

@@ -45,8 +45,8 @@ public class UserController {
         return ResponseEntity.ok(usersDTO);
     }
 
-    @GetMapping("/{fullName}")
-    public ResponseEntity<UserResponseDTO> findByFullName(@PathVariable String fullName) {
+    @GetMapping("/search/by-fullName")
+    public ResponseEntity<UserResponseDTO> findByFullName(@RequestParam("fullName") String fullName) {
         UserResponseDTO usersDTO = userService.getByFullName(fullName);
         return ResponseEntity.ok(usersDTO);
     }
