@@ -2,6 +2,8 @@ package br.com.management.api_library.service;
 
 import br.com.management.api_library.dto.UserCreateDTO;
 import br.com.management.api_library.dto.UserResponseDTO;
+import br.com.management.api_library.exception.RoleNotFoundException;
+import br.com.management.api_library.exception.UserNotFoundException;
 import br.com.management.api_library.model.Role;
 import br.com.management.api_library.model.User;
 import br.com.management.api_library.repository.RoleRepository;
@@ -38,7 +40,7 @@ public class UserService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
+                .orElseThrow(() -> new UserNotFoundException("Usuário " + username + " não encontrado"));
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
@@ -64,7 +66,7 @@ public class UserService implements UserDetailsService {
 
         // 2. Busca a role "USER" no banco de dados
         Role userRole = roleRepository.findByName("ROLE_USER")
-                .orElseThrow(() -> new RuntimeException("Erro: Role padrão não encontrada."));
+                .orElseThrow(() -> new RoleNotFoundException("Erro: Role padrão não encontrada."));
 
         // 3. Atribui a role padrão ao novo usuário
         newUser.setRoles(Collections.singleton(userRole));
@@ -84,13 +86,13 @@ public class UserService implements UserDetailsService {
 
     public UserResponseDTO getByFullName(String fullName) {
         User user = userRepository.findByFullName(fullName)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o nome completo: " + fullName)); // Futuramente, use uma exceção customizada.
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com o nome completo: " + fullName)); // Futuramente, use uma exceção customizada.
         return toResponseDTO(user);
     }
 
     public UserResponseDTO updateUser(Long id, @Valid UserCreateDTO updateDTO) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o ID: " + id)); // Futuramente, use uma exceção customizada.
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com o ID: " + id)); // Futuramente, use uma exceção customizada.
 
         mapDtoToEntity(existingUser, updateDTO);
 
@@ -104,7 +106,7 @@ public class UserService implements UserDetailsService {
 
     public void deleteUser(Long id) {
         userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o ID: " + id)); // Futuramente, use uma exceção customizada.
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com o ID: " + id)); // Futuramente, use uma exceção customizada.
 
         userRepository.deleteById(id);
     }
