@@ -93,7 +93,7 @@ public class GlobalHandlerException {
     }
 
     @ExceptionHandler(ShelfItemNotFoundException.class)
-    public  ResponseEntity<ErrorResponseDTO> handlerShelfItemNotFoundException(ShelfItemNotFoundException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponseDTO> handlerShelfItemNotFoundException(ShelfItemNotFoundException ex, HttpServletRequest request) {
         var errorResponse = new ErrorResponseDTO(
                 LocalDateTime.now(),
                 HttpStatus.NOT_FOUND.value(), // 404
@@ -118,6 +118,18 @@ public class GlobalHandlerException {
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(BookAlreadyExistsOnShelfException.class)
+    public ResponseEntity<ErrorResponseDTO> handleBookAlreadyExistsOnShelfException(BookAlreadyExistsOnShelfException ex, HttpServletRequest request) {
+        var errorResponse = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(), // 409
+                "Conflict",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ErrorResponseDTO> handleEmailAlreadyExistsException(EmailAlreadyExistsException ex, HttpServletRequest request) {
         var errorResponse = new ErrorResponseDTO(
@@ -128,5 +140,19 @@ public class GlobalHandlerException {
                 request.getRequestURI()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    // Unauthorized - 401
+
+    @ExceptionHandler(UnauthorizedShelfAccessException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUnauthorizedShelfAccessException(UnauthorizedShelfAccessException ex, HttpServletRequest request) {
+        var errorResponse = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.UNAUTHORIZED.value(),
+                "Unauthorized", // 401
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 }
