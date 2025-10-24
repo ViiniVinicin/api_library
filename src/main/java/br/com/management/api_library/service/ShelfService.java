@@ -2,7 +2,7 @@ package br.com.management.api_library.service;
 
 import br.com.management.api_library.dto.ShelfItemRequestDTO;
 import br.com.management.api_library.dto.ShelfItemResponseDTO;
-import br.com.management.api_library.exception.BookAlreadyOnShelfException;
+import br.com.management.api_library.exception.BookAlreadyExistsOnShelfException;
 import br.com.management.api_library.exception.ResourceNotFoundException;
 import br.com.management.api_library.exception.ShelfItemNotFoundException;
 import br.com.management.api_library.exception.UnauthorizedShelfAccessException;
@@ -39,7 +39,7 @@ public class ShelfService {
         Book book = findBookById(bookId);
 
         userBookRepository.findByUserAndBook(user, book).ifPresent(ub -> {
-            throw new BookAlreadyOnShelfException("Livro com ID " + bookId + " já está na sua estante.");
+            throw new BookAlreadyExistsOnShelfException("Livro com ID " + bookId + " já está na sua estante.");
         });
 
         UserBook newUserBook = new UserBook();

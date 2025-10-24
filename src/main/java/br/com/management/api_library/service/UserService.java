@@ -2,13 +2,14 @@ package br.com.management.api_library.service;
 
 import br.com.management.api_library.dto.UserCreateDTO;
 import br.com.management.api_library.dto.UserResponseDTO;
-import br.com.management.api_library.exception.EmailAlreadyExistsException;
-import br.com.management.api_library.exception.RoleNotFoundException;
-import br.com.management.api_library.exception.UserNotFoundException;
+import br.com.management.api_library.exception.*;
 import br.com.management.api_library.model.Role;
 import br.com.management.api_library.model.User;
+import br.com.management.api_library.model.UserBook;
 import br.com.management.api_library.repository.RoleRepository;
+import br.com.management.api_library.repository.UserBookRepository;
 import br.com.management.api_library.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -23,6 +24,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static br.com.management.api_library.exception.GlobalHandlerException.log;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -58,8 +61,15 @@ public class UserService implements UserDetailsService {
 
     public UserResponseDTO createUser(UserCreateDTO createDTO) {
 
+        userRepository.findByUsernameIgnoreCase(createDTO.getUsername())
+                .ifPresent(user -> {
+                    log.warn("--- LANÇANDO UsernameAlreadyExistsException PARA: {} ---", createDTO.getUsername());
+                    throw new UsernameAlreadyExistsException("Erro: O Username '" + createDTO.getUsername() + "' já está cadastrado.");
+                });
+
         userRepository.findByEmailIgnoreCase(createDTO.getEmail())
                 .ifPresent(user -> {
+                    log.warn("--- LANÇANDO EmailAlreadyExistsException PARA: {} ---", createDTO.getEmail());
                     throw new EmailAlreadyExistsException("Erro: O e-mail '" + createDTO.getEmail() + "' já está cadastrado.");
                 });
 
@@ -111,6 +121,7 @@ public class UserService implements UserDetailsService {
         return toResponseDTO(updatedUser);
     }
 
+    @Transactional
     public void deleteUser(Long id) {
         userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com o ID: " + id));

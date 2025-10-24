@@ -111,7 +111,7 @@ public class GlobalHandlerException {
         var errorResponse = new ErrorResponseDTO(
                 LocalDateTime.now(),
                 HttpStatus.CONFLICT.value(), // 409
-                "Conflict",
+                "Book Already Exists",
                 ex.getMessage(),
                 request.getRequestURI()
         );
@@ -123,7 +123,7 @@ public class GlobalHandlerException {
         var errorResponse = new ErrorResponseDTO(
                 LocalDateTime.now(),
                 HttpStatus.CONFLICT.value(), // 409
-                "Conflict",
+                "Book Already Exists on Shelf",
                 ex.getMessage(),
                 request.getRequestURI()
         );
@@ -135,7 +135,19 @@ public class GlobalHandlerException {
         var errorResponse = new ErrorResponseDTO(
                 LocalDateTime.now(),
                 HttpStatus.CONFLICT.value(), // 409
-                "Conflict",
+                "Email Already Exists",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(UsernameAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUsernameAlreadyExistsException(UsernameAlreadyExistsException ex, HttpServletRequest request) {
+        var errorResponse = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(), // 409
+                "Username Already Exists",
                 ex.getMessage(),
                 request.getRequestURI()
         );

@@ -23,6 +23,9 @@ public class User {
     private String email;
     private String fullName;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<UserBook> userBooks = new HashSet<>();
+
     @ManyToMany(fetch = FetchType.EAGER) // EAGER para carregar as roles junto com o usuário
     @JoinTable(
             name = "user_roles",
