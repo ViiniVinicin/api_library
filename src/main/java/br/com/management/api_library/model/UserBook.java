@@ -17,8 +17,9 @@ public class UserBook {
     @ManyToOne
     private Book book;
 
-    private String readingStatus; // Sugest: Usar Enum para valores como: WANT_TO_READ, READING, READ, DROPPED
-    private int rating; // Sugest: Valor de 1 a 5
+    @Enumerated(EnumType.STRING)
+    private ReadingStatus readingStatus; // Sugest: Usar Enum para valores como: WANT_TO_READ, READING, READ, DROPPED
+    private Double rating; // Sugest: Valor de 1 a 5
     private String review;
     private boolean isFavorite;
     private int currentPage;

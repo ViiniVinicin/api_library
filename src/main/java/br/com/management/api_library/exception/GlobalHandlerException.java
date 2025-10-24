@@ -92,6 +92,18 @@ public class GlobalHandlerException {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(ShelfItemNotFoundException.class)
+    public  ResponseEntity<ErrorResponseDTO> handlerShelfItemNotFoundException(ShelfItemNotFoundException ex, HttpServletRequest request) {
+        var errorResponse = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(), // 404
+                "Shelf Item Not Found",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
     // Conflict - 409
 
     @ExceptionHandler(BookAlreadyExistsException.class)
