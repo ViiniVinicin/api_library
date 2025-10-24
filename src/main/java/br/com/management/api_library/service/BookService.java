@@ -23,7 +23,7 @@ public class BookService {
 
     public BookResponseDTO createBook(BookCreateDTO createDTO) {
 
-        bookRepository.findByTitleIgnoringCase(createDTO.isbn())
+        bookRepository.findByIsbn(createDTO.isbn())
                 .ifPresent(existingBook -> {
                     throw new BookAlreadyExistsException("Erro: O livro com o ISBN: " + createDTO.isbn() + " já existe.");
                 });
