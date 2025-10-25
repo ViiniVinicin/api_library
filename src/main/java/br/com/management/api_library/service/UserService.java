@@ -5,11 +5,9 @@ import br.com.management.api_library.dto.UserResponseDTO;
 import br.com.management.api_library.exception.*;
 import br.com.management.api_library.model.Role;
 import br.com.management.api_library.model.User;
-import br.com.management.api_library.model.UserBook;
 import br.com.management.api_library.repository.RoleRepository;
-import br.com.management.api_library.repository.UserBookRepository;
 import br.com.management.api_library.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -42,15 +40,23 @@ public class UserService implements UserDetailsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // 1. Busca o usuário no seu repositório
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("Usuário " + username + " não encontrado"));
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("Usuário não encontrado com o username: " + username));
 
+        // 2. Converte as Roles (do seu model) para GrantedAuthority (do Spring Security)
+        Collection<? extends GrantedAuthority> authorities = user.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName())) // Assumindo que Role tem getName()
+                .collect(Collectors.toList());
+
+        // 3. Retorna um objeto UserDetails (a implementação padrão do Spring)
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
-                user.getPassword(),
-                mapRolesToAuthorities(user.getRoles())
-        );
+                user.getPassword(), // A senha JÁ DEVE ESTAR CRIPTOGRAFADA no banco
+                authorities);
     }
 
     private Collection<? extends GrantedAuthority> mapRolesToAuthorities(Collection<Role> roles) {
@@ -89,6 +95,11 @@ public class UserService implements UserDetailsService {
         newUser.setRoles(Collections.singleton(userRole));
 
         return toResponseDTO(userRepository.save(newUser));
+    }
+
+    private User findUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário '" + username + "' não encontrado."));
     }
 
     public List<UserResponseDTO> getAllUsers() {
