@@ -160,11 +160,11 @@ public class GlobalHandlerException {
     public ResponseEntity<ErrorResponseDTO> handleUnauthorizedShelfAccessException(UnauthorizedShelfAccessException ex, HttpServletRequest request) {
         var errorResponse = new ErrorResponseDTO(
                 LocalDateTime.now(),
-                HttpStatus.UNAUTHORIZED.value(),
-                "Unauthorized", // 401
+                HttpStatus.FORBIDDEN.value(),
+                "Forbidden", // 401
                 ex.getMessage(),
                 request.getRequestURI()
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 }
