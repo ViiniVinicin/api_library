@@ -9,5 +9,8 @@ public record GoogleBookVolumeInfo(
         List<String> authors,
         String publisher,
         String description,
-        Map<String, String> imageLinks // imageLinks é um objeto JSON
+        Map<String, String> imageLinks, // imageLinks é um objeto JSON
+        List<String> categories,
+        String language,
+        int pageCount
 ) {}

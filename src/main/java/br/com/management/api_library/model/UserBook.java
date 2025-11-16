@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Entity
 @Data
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "book_id"}))
 public class UserBook {
 
     @Id
@@ -18,8 +19,10 @@ public class UserBook {
     private Book book;
 
     @Enumerated(EnumType.STRING)
-    private ReadingStatus readingStatus; // Sugest: Usar Enum para valores como: WANT_TO_READ, READING, READ, DROPPED
-    private Double rating; // Sugest: Valor de 1 a 5
+
+    @Column(nullable = false)
+    private ReadingStatus readingStatus;
+    private Double rating;
     private String review;
     private boolean isFavorite;
     private int currentPage;

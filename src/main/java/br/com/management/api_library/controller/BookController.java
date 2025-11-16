@@ -1,6 +1,5 @@
 package br.com.management.api_library.controller;
 
-
 import br.com.management.api_library.dto.BookCreateDTO;
 import br.com.management.api_library.dto.BookResponseDTO;
 import br.com.management.api_library.dto.BookUpdateDTO;
@@ -79,5 +78,13 @@ public class BookController {
     public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // ISBN
+
+    @GetMapping("/isbn/{isbn}") // URL será /library_api/books/isbn/9788576082675
+    public ResponseEntity<BookResponseDTO> findBookByIsbn(@PathVariable String isbn) {
+        BookResponseDTO bookDTO = bookService.findOrCreateBookByIsbn(isbn);
+        return ResponseEntity.ok(bookDTO);
     }
 }

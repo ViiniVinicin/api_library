@@ -17,13 +17,20 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String title;
     private String author;
     private String publisher;
     private String genre;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
     private String language;
+
+    @Column(unique = true)
     private String isbn;
+
     private int pages;
+    private String imageUrl;
 
 }
