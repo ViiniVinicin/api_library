@@ -1,5 +1,6 @@
 package br.com.management.api_library.controller;
 
+import br.com.management.api_library.dto.ShelfItemRequestByIsbnDTO;
 import br.com.management.api_library.dto.ShelfItemRequestDTO;
 import br.com.management.api_library.dto.ShelfItemResponseDTO;
 import br.com.management.api_library.service.ShelfService;
@@ -15,23 +16,19 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/library_api/shelf") // Ajustei a URL base para /shelf
+@RequestMapping("/library_api/shelf")
 public class ShelfController {
 
     private final ShelfService shelfService;
 
-    // @Autowired é opcional
     public ShelfController(ShelfService shelfService) {
         this.shelfService = shelfService;
     }
 
-    /**
-     * Adiciona um livro (pelo ID do livro) à estante do usuário autenticado.
-     */
     @PostMapping("/books/{bookId}")
     public ResponseEntity<ShelfItemResponseDTO> addBookToShelf(
             @PathVariable Long bookId,
-            @Valid @RequestBody ShelfItemRequestDTO requestDTO, // DTO com status inicial, etc.
+            @Valid @RequestBody ShelfItemRequestDTO requestDTO,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         String username = userDetails.getUsername();
@@ -46,10 +43,25 @@ public class ShelfController {
         return ResponseEntity.created(location).body(savedItem);
     }
 
-    /**
-     * Lista todos os itens da estante do usuário autenticado.
-     */
-    @GetMapping("/books") // Mudança: Endpoint para listar todos os livros na estante
+    @PostMapping("/add-by-isbn")
+    public ResponseEntity<ShelfItemResponseDTO> addBookToShelfByIsbn(
+            @Valid @RequestBody ShelfItemRequestByIsbnDTO dto,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        String username = userDetails.getUsername();
+
+        // Chama o novo serviço inteligente
+        ShelfItemResponseDTO savedItem = shelfService.addBookToShelfByIsbn(username, dto);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentContextPath().path("/library_api/shelf/items/{id}")
+                .buildAndExpand(savedItem.userBookId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(savedItem);
+    }
+
+    @GetMapping("/books")
     public ResponseEntity<List<ShelfItemResponseDTO>> getMyShelf(
             @AuthenticationPrincipal UserDetails userDetails) {
 
@@ -58,13 +70,10 @@ public class ShelfController {
         return ResponseEntity.ok(shelfItems);
     }
 
-    /**
-     * Atualiza um item específico na estante (pelo ID da relação UserBook).
-     */
-    @PutMapping("/items/{userBookId}") // Mudança: Path e ID para o item da estante
+    @PutMapping("/items/{userBookId}")
     public ResponseEntity<ShelfItemResponseDTO> updateBookOnShelf(
             @PathVariable Long userBookId,
-            @Valid @RequestBody ShelfItemRequestDTO requestDTO, // DTO com os novos dados
+            @Valid @RequestBody ShelfItemRequestDTO requestDTO,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         String username = userDetails.getUsername();
@@ -72,10 +81,7 @@ public class ShelfController {
         return ResponseEntity.ok(updatedItem);
     }
 
-    /**
-     * Remove um item específico da estante (pelo ID da relação UserBook).
-     */
-    @DeleteMapping("/items/{userBookId}") // Mudança: Path e ID para o item da estante
+    @DeleteMapping("/items/{userBookId}")
     public ResponseEntity<Void> removeBookFromShelf(
             @PathVariable Long userBookId,
             @AuthenticationPrincipal UserDetails userDetails) {

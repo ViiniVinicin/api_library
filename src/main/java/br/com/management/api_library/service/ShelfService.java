@@ -1,5 +1,7 @@
 package br.com.management.api_library.service;
 
+import br.com.management.api_library.dto.BookResponseDTO;
+import br.com.management.api_library.dto.ShelfItemRequestByIsbnDTO;
 import br.com.management.api_library.dto.ShelfItemRequestDTO;
 import br.com.management.api_library.dto.ShelfItemResponseDTO;
 import br.com.management.api_library.exception.BookAlreadyExistsOnShelfException;
@@ -25,12 +27,14 @@ public class ShelfService {
     private final UserBookRepository userBookRepository;
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
+    private final BookService bookService;
 
     // @Autowired é opcional em construtores a partir de certas versões do Spring
-    public ShelfService(UserBookRepository userBookRepository, UserRepository userRepository, BookRepository bookRepository) {
+    public ShelfService(UserBookRepository userBookRepository, UserRepository userRepository, BookRepository bookRepository, BookService bookService) {
         this.userBookRepository = userBookRepository;
         this.userRepository = userRepository;
         this.bookRepository = bookRepository;
+        this.bookService = bookService;
     }
 
     @Transactional
@@ -57,6 +61,28 @@ public class ShelfService {
 
         UserBook savedUserBook = userBookRepository.save(newUserBook);
         return toResponseDTO(savedUserBook);
+    }
+
+    @Transactional
+    public ShelfItemResponseDTO addBookToShelfByIsbn(String username, ShelfItemRequestByIsbnDTO dto) {
+        // Busca no banco local. Se não achar, busca no Google e salva.
+        // No final, garante que temos um livro salvo e retorna o DTO dele.
+        BookResponseDTO bookDTO = bookService.findOrCreateBookByIsbn(dto.isbn());
+
+        // Pega o ID dele.
+        Long bookId = bookDTO.id();
+
+        // Converte o DTO de ISBN para o DTO normal de requisição da estante
+        ShelfItemRequestDTO requestDTO = new ShelfItemRequestDTO(
+                dto.readingStatus(),
+                dto.rating(),
+                dto.review(),
+                dto.currentPage(),
+                dto.isFavorite()
+        );
+
+        // Reutiliza lógica existente de adicionar à estante
+        return addBookToShelf(username, bookId, requestDTO);
     }
 
     @Transactional(readOnly = true)

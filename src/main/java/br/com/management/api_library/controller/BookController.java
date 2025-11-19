@@ -3,7 +3,9 @@ package br.com.management.api_library.controller;
 import br.com.management.api_library.dto.BookCreateDTO;
 import br.com.management.api_library.dto.BookResponseDTO;
 import br.com.management.api_library.dto.BookUpdateDTO;
+import br.com.management.api_library.dto.GoogleBookVolumeInfo;
 import br.com.management.api_library.service.BookService;
+import br.com.management.api_library.service.IsbnService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,10 +21,12 @@ import java.util.List;
 public class BookController {
 
     private final BookService bookService;
+    private final IsbnService isbnService;
 
     @Autowired
-    public BookController(BookService bookService) {
+    public BookController(BookService bookService,  IsbnService isbnService) {
         this.bookService = bookService;
+        this.isbnService = isbnService;
     }
 
     @PostMapping
@@ -42,6 +46,14 @@ public class BookController {
     public ResponseEntity<List<BookResponseDTO>> findAll() {
         List<BookResponseDTO> booksDTO = bookService.getAllBooks();
         return ResponseEntity.ok(booksDTO);
+    }
+
+    @GetMapping("/search-google")
+    public ResponseEntity<List<GoogleBookVolumeInfo>> searchGoogleBooks(@RequestParam("q") String query) {
+        // Aqui chamamos o serviço que busca direto no Google e retorna a lista
+        // Note: Não salvamos nada no banco aqui, é apenas visualização
+        List<GoogleBookVolumeInfo> results = isbnService.searchBooksByQuery(query);
+        return ResponseEntity.ok(results);
     }
 
     @GetMapping("/by-title")

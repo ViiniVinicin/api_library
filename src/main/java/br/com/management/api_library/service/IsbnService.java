@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class IsbnService {
@@ -67,6 +69,36 @@ public class IsbnService {
             // Loga o erro se a chamada à API falhar
             log.error("Erro ao chamar a API do Google Books para o ISBN {}: {}", isbn, e.getMessage());
             return Optional.empty(); // Retorna vazio em caso de erro
+        }
+    }
+
+    public List<GoogleBookVolumeInfo> searchBooksByQuery(String query) {
+        log.info("Buscando livros no Google Books com a query: {}", query);
+
+        try {
+            GoogleBookApiResponse response = webClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/volumes")
+                            .queryParam("q", query) // O Google é inteligente, 'q' busca em tudo
+                            .queryParam("maxResults", 10) // Limita a 10 sugestões para o autocomplete
+                            .queryParam("key", this.apiKey)
+                            .build())
+                    .retrieve()
+                    .bodyToMono(GoogleBookApiResponse.class)
+                    .block();
+
+            if (response != null && response.items() != null) {
+                // Mapeia a lista de itens para retornar apenas os dados do volume
+                return response.items().stream()
+                        .map(item -> item.volumeInfo())
+                        // Filtra resultados que não tenham ISBN, pois precisamos dele depois
+                        .filter(info -> info.imageLinks() != null) // Opcional: filtrar sem capa
+                        .collect(Collectors.toList());
+            }
+            return List.of(); // Retorna lista vazia se nada for encontrado
+        } catch (Exception e) {
+            log.error("Erro ao buscar livros por query: {}", e.getMessage());
+            return List.of();
         }
     }
 }
