@@ -26,6 +26,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/library_api/users").permitAll()      // Permite o cadastro de novos usuários
                         .requestMatchers(HttpMethod.GET, "/library_api/books/**").permitAll()    // Permite buscar/ver livros sem login
 
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // --- Endpoints da Estante Pessoal (Shelf) ---
                         // Qualquer usuário autenticado pode gerenciar SUA PRÓPRIA estante
                         .requestMatchers("/library_api/shelf/**").authenticated()
