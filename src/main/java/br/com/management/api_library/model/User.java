@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -28,6 +29,7 @@ public class User {
     private String fullName;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @ToString.Exclude
     private Set<UserBook> userBooks = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER) // EAGER para carregar as roles junto com o usuário
@@ -36,5 +38,6 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
+    @ToString.Exclude
     private Set<Role> roles = new HashSet<>();
 }

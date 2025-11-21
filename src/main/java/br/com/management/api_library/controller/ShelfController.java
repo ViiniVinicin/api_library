@@ -3,6 +3,7 @@ package br.com.management.api_library.controller;
 import br.com.management.api_library.dto.ShelfItemRequestByIsbnDTO;
 import br.com.management.api_library.dto.ShelfItemRequestDTO;
 import br.com.management.api_library.dto.ShelfItemResponseDTO;
+import br.com.management.api_library.model.User;
 import br.com.management.api_library.service.ShelfService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -29,9 +30,9 @@ public class ShelfController {
     public ResponseEntity<ShelfItemResponseDTO> addBookToShelf(
             @PathVariable Long bookId,
             @Valid @RequestBody ShelfItemRequestDTO requestDTO,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal User user) {
 
-        String username = userDetails.getUsername();
+        String username = user.getUsername();
         ShelfItemResponseDTO savedItem = shelfService.addBookToShelf(username, bookId, requestDTO);
 
         // Cria a URI para o item específico da estante que foi criado
@@ -46,9 +47,9 @@ public class ShelfController {
     @PostMapping("/add-by-isbn")
     public ResponseEntity<ShelfItemResponseDTO> addBookToShelfByIsbn(
             @Valid @RequestBody ShelfItemRequestByIsbnDTO dto,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal User user) {
 
-        String username = userDetails.getUsername();
+        String username = user.getUsername();
 
         // Chama o novo serviço inteligente
         ShelfItemResponseDTO savedItem = shelfService.addBookToShelfByIsbn(username, dto);
@@ -63,9 +64,9 @@ public class ShelfController {
 
     @GetMapping("/books")
     public ResponseEntity<List<ShelfItemResponseDTO>> getMyShelf(
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal User user) {
 
-        String username = userDetails.getUsername();
+        String username = user.getUsername();
         List<ShelfItemResponseDTO> shelfItems = shelfService.getUserShelf(username);
         return ResponseEntity.ok(shelfItems);
     }
@@ -74,9 +75,9 @@ public class ShelfController {
     public ResponseEntity<ShelfItemResponseDTO> updateBookOnShelf(
             @PathVariable Long userBookId,
             @Valid @RequestBody ShelfItemRequestDTO requestDTO,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal User user) {
 
-        String username = userDetails.getUsername();
+        String username = user.getUsername();
         ShelfItemResponseDTO updatedItem = shelfService.updateBookOnShelf(username, userBookId, requestDTO);
         return ResponseEntity.ok(updatedItem);
     }
@@ -84,9 +85,9 @@ public class ShelfController {
     @DeleteMapping("/items/{userBookId}")
     public ResponseEntity<Void> removeBookFromShelf(
             @PathVariable Long userBookId,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal User user) {
 
-        String username = userDetails.getUsername();
+        String username = user.getUsername();
         shelfService.removeBookFromShelf(username, userBookId);
         return ResponseEntity.noContent().build(); // Retorna 204 No Content
     }
