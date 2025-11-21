@@ -15,6 +15,8 @@ import br.com.management.api_library.model.UserBook;
 import br.com.management.api_library.repository.BookRepository;
 import br.com.management.api_library.repository.UserBookRepository;
 import br.com.management.api_library.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +31,6 @@ public class ShelfService {
     private final BookRepository bookRepository;
     private final BookService bookService;
 
-    // @Autowired é opcional em construtores a partir de certas versões do Spring
     public ShelfService(UserBookRepository userBookRepository, UserRepository userRepository, BookRepository bookRepository, BookService bookService) {
         this.userBookRepository = userBookRepository;
         this.userRepository = userRepository;
@@ -37,6 +38,7 @@ public class ShelfService {
         this.bookService = bookService;
     }
 
+    // Metodo que busca se tem um livro com o ID "x" na sua estante
     @Transactional
     public ShelfItemResponseDTO addBookToShelf(String username, Long bookId, ShelfItemRequestDTO requestDTO) {
         User user = findUserByUsername(username);
@@ -86,12 +88,11 @@ public class ShelfService {
     }
 
     @Transactional(readOnly = true)
-    public List<ShelfItemResponseDTO> getUserShelf(String username) {
+    public Page<ShelfItemResponseDTO> getUserShelf(String username, Pageable pageable) {
         User user = findUserByUsername(username);
-        List<UserBook> shelfItems = userBookRepository.findByUser(user); // Assumindo que este método existe no repo
-        return shelfItems.stream()
-                .map(this::toResponseDTO)
-                .collect(Collectors.toList());
+
+        Page<UserBook> shelfItems = userBookRepository.findByUser(user, pageable);
+        return shelfItems.map(this::toResponseDTO);
     }
 
     @Transactional

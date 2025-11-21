@@ -6,6 +6,10 @@ import br.com.management.api_library.dto.ShelfItemResponseDTO;
 import br.com.management.api_library.model.User;
 import br.com.management.api_library.service.ShelfService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,7 +34,8 @@ public class ShelfController {
     public ResponseEntity<ShelfItemResponseDTO> addBookToShelf(
             @PathVariable Long bookId,
             @Valid @RequestBody ShelfItemRequestDTO requestDTO,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal User user
+    ) {
 
         String username = user.getUsername();
         ShelfItemResponseDTO savedItem = shelfService.addBookToShelf(username, bookId, requestDTO);
@@ -63,11 +68,15 @@ public class ShelfController {
     }
 
     @GetMapping("/books")
-    public ResponseEntity<List<ShelfItemResponseDTO>> getMyShelf(
-            @AuthenticationPrincipal User user) {
-
+    public ResponseEntity<Page<ShelfItemResponseDTO>> getMyShelf(
+            @AuthenticationPrincipal User user,
+            // A anotação @PageableDefault define os valores padrão caso o usuário não envie nada na URL
+            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
         String username = user.getUsername();
-        List<ShelfItemResponseDTO> shelfItems = shelfService.getUserShelf(username);
+
+        Page<ShelfItemResponseDTO> shelfItems = shelfService.getUserShelf(username, pageable);
+
         return ResponseEntity.ok(shelfItems);
     }
 

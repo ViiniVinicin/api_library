@@ -8,6 +8,10 @@ import br.com.management.api_library.service.BookService;
 import br.com.management.api_library.service.IsbnService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,16 +47,21 @@ public class BookController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BookResponseDTO>> findAll() {
-        List<BookResponseDTO> booksDTO = bookService.getAllBooks();
+    public ResponseEntity<Page<BookResponseDTO>> findAll(
+            @PageableDefault(page = 0, size = 20, sort = "title") Pageable pageable
+    ) {
+        Page<BookResponseDTO> booksDTO = bookService.getAllBooks(pageable);
         return ResponseEntity.ok(booksDTO);
     }
 
     @GetMapping("/search-google")
-    public ResponseEntity<List<GoogleBookVolumeInfo>> searchGoogleBooks(@RequestParam("q") String query) {
+    public ResponseEntity<Page<GoogleBookVolumeInfo>> searchGoogleBooks(
+            @RequestParam("q") String query,
+            @PageableDefault(page = 0, size = 10) Pageable pageable
+    ){
         // Aqui chamamos o serviço que busca direto no Google e retorna a lista
         // Note: Não salvamos nada no banco aqui, é apenas visualização
-        List<GoogleBookVolumeInfo> results = isbnService.searchBooksByQuery(query);
+        Page<GoogleBookVolumeInfo> results = isbnService.searchBooksByQuery(query, pageable);
         return ResponseEntity.ok(results);
     }
 
@@ -63,8 +72,11 @@ public class BookController {
     }
 
     @GetMapping("/by-genre")
-    public ResponseEntity<List<BookResponseDTO>> findByGenre(@RequestParam("genre") String genre) {
-        List<BookResponseDTO> booksDTO = bookService.getBooksByGenre(genre);
+    public ResponseEntity<Page<BookResponseDTO>> findByGenre(
+            @RequestParam("genre") String genre,
+            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
+    ){
+        Page<BookResponseDTO> booksDTO = bookService.getBooksByGenre(genre, pageable);
         return ResponseEntity.ok(booksDTO);
     }
 

@@ -12,5 +12,6 @@ public record GoogleBookVolumeInfo(
         Map<String, String> imageLinks, // imageLinks é um objeto JSON
         List<String> categories,
         String language,
-        int pageCount
+        int pageCount,
+        List<IndustryIdentifier> industryIdentifiers
 ) {}

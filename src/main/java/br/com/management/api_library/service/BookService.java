@@ -1,14 +1,13 @@
 package br.com.management.api_library.service;
 
-import br.com.management.api_library.dto.BookCreateDTO;
-import br.com.management.api_library.dto.BookResponseDTO;
-import br.com.management.api_library.dto.BookUpdateDTO;
-import br.com.management.api_library.dto.GoogleBookVolumeInfo;
+import br.com.management.api_library.dto.*;
 import br.com.management.api_library.exception.BookAlreadyExistsException;
 import br.com.management.api_library.exception.ResourceNotFoundException;
 import br.com.management.api_library.model.Book;
 import br.com.management.api_library.repository.BookRepository;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -42,14 +41,10 @@ public class BookService {
         return toResponseDTO(savedBook);
     }
 
-    public List<BookResponseDTO> getAllBooks() {
+    public Page<BookResponseDTO> getAllBooks(Pageable pageable) {
 
-        List<Book> books = bookRepository.findAll();
-
-        return bookRepository.findAll()
-                .stream()
-                .map(this::toResponseDTO)
-                .toList();
+        return bookRepository.findAll(pageable)
+                .map(this::toResponseDTO);
     }
 
     public BookResponseDTO getBookByTitle(String title) {
@@ -59,17 +54,14 @@ public class BookService {
         return toResponseDTO(books);
     }
 
-    public List<BookResponseDTO> getBooksByGenre(String genre) {
+    public Page<BookResponseDTO> getBooksByGenre(String genre, Pageable pageable) {
 
-        List<Book> books = bookRepository.findByGenreIgnoringCase(genre);
+        Page<Book> books = bookRepository.findByGenreIgnoringCase(genre, pageable);
 
         if (books.isEmpty()) {
             throw new ResourceNotFoundException("Erro: Nenhum livro do gênero " + genre + " foi encontrado.");
         } else {
-            return books.stream()
-                    .filter(b -> b .getGenre().equalsIgnoreCase(genre))
-                    .map(this::toResponseDTO)
-                    .toList();
+            return books.map(this::toResponseDTO);
         }
     }
 
@@ -155,6 +147,25 @@ public class BookService {
         Book book = new Book();
         book.setIsbn(isbn); // O ISBN que usamos na busca
         book.setTitle(volumeInfo.title());
+
+        String isbnEncontrado = null;
+        if (volumeInfo.industryIdentifiers() != null) {
+            // Tenta achar o ISBN_13 primeiro
+            isbnEncontrado = volumeInfo.industryIdentifiers().stream()
+                    .filter(id -> "ISBN_13".equals(id.type()))
+                    .map(IndustryIdentifier::identifier)
+                    .findFirst()
+                    .orElse(null);
+
+            // Se não achar ISBN_13, tenta o ISBN_10
+            if (isbnEncontrado == null) {
+                isbnEncontrado = volumeInfo.industryIdentifiers().stream()
+                        .filter(id -> "ISBN_10".equals(id.type()))
+                        .map(IndustryIdentifier::identifier)
+                        .findFirst()
+                        .orElse(null);
+            }
+        }
 
         // Junta a lista de autores em uma única string separada por vírgula
         if (volumeInfo.authors() != null && !volumeInfo.authors().isEmpty()) {
