@@ -41,6 +41,13 @@ public class BookService {
         return toResponseDTO(savedBook);
     }
 
+    public BookResponseDTO getById(Long id) {
+        return bookRepository.findById(id)
+                // CORREÇÃO: Troque .get() por .orElseThrow(...)
+                .map(this::toResponseDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Livro não encontrado com ID: " + id));
+    }
+
     public Page<BookResponseDTO> getAllBooks(Pageable pageable) {
 
         return bookRepository.findAll(pageable)
