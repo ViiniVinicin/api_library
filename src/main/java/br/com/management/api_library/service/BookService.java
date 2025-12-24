@@ -210,6 +210,7 @@ public class BookService {
     private BookResponseDTO toResponseDTO(Book book) {
         return new BookResponseDTO(
                 book.getId(),
+                book.getIsbn(),
                 book.getTitle(),
                 book.getAuthor(),
                 book.getPublisher(),
