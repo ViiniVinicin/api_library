@@ -2,6 +2,7 @@ package br.com.management.api_library.service;
 
 import br.com.management.api_library.dto.BookCreateDTO;
 import br.com.management.api_library.dto.BookResponseDTO;
+import br.com.management.api_library.dto.GoogleBookVolumeInfo;
 import br.com.management.api_library.exception.BookAlreadyExistsException;
 import br.com.management.api_library.exception.ResourceNotFoundException;
 import br.com.management.api_library.model.Book;
@@ -13,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -127,5 +129,85 @@ class BookServiceTest {
 
         // ASSERT
         verify(bookRepository, times(1)).deleteById(id);
+    }
+
+    @Mock
+    private IsbnService isbnService;
+
+    // --- NOVOS TESTES: Lógica de Busca Híbrida (Local vs Google) ---
+
+    @Test
+    @DisplayName("Deve retornar livro do banco local se já existir (sem chamar Google)")
+    void shouldReturnLocalBookIfItExists() {
+        // ARRANGE
+        String isbn = "978-LOCAL";
+        Book localBook = new Book();
+        localBook.setId(1L);
+        localBook.setIsbn(isbn);
+        localBook.setTitle("Livro Local");
+
+        when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.of(localBook));
+
+        // ACT
+        BookResponseDTO response = bookService.findOrCreateBookByIsbn(isbn);
+
+        // ASSERT
+        assertEquals("Livro Local", response.title());
+        verify(bookRepository, never()).save(any()); // Não deve salvar de novo
+        verify(isbnService, never()).findBookInfoByIsbn(any()); // Não deve chamar API externa
+    }
+
+    @Test
+    @DisplayName("Deve buscar na API externa e salvar quando não existir localmente")
+    void shouldFetchFromGoogleAndSaveWhenNotLocal() {
+        // ARRANGE
+        String isbn = "978-GOOGLE";
+
+        // 1. Não achou no banco local
+        when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.empty());
+
+        // 2. Achou na API do Google
+        // AQUI ESTÁ A CORREÇÃO: A ordem exata baseada no seu Record
+        GoogleBookVolumeInfo googleInfo = new GoogleBookVolumeInfo(
+                "Livro Google",                  // 1. title
+                List.of("Autor Google"),         // 2. authors
+                "Editora G",                     // 3. publisher
+                "Descrição do livro",            // 4. description
+                null,                            // 5. imageLinks (Map) - Pode ser null pois tem check no service
+                null,                            // 6. categories (List)
+                "PT",                            // 7. language
+                100,                             // 8. pageCount (int)
+                null                             // 9. industryIdentifiers (List)
+        );
+
+        when(isbnService.findBookInfoByIsbn(isbn)).thenReturn(Optional.of(googleInfo));
+
+        // 3. Mock do salvamento
+        when(bookRepository.save(any(Book.class))).thenAnswer(inv -> {
+            Book b = inv.getArgument(0);
+            b.setId(2L); // Simula o ID gerado pelo banco
+            return b;
+        });
+
+        // ACT
+        BookResponseDTO response = bookService.findOrCreateBookByIsbn(isbn);
+
+        // ASSERT
+        assertEquals("Livro Google", response.title());
+        assertEquals("Autor Google", response.author());
+        verify(isbnService).findBookInfoByIsbn(isbn); // Garante que chamou o Google
+        verify(bookRepository).save(any(Book.class)); // Garante que salvou
+    }
+
+    @Test
+    @DisplayName("Deve lançar erro se não existir nem local nem na API externa")
+    void shouldThrowExceptionWhenNotFoundAnywhere() {
+        // ARRANGE
+        String isbn = "978-NADA";
+        when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.empty());
+        when(isbnService.findBookInfoByIsbn(isbn)).thenReturn(Optional.empty());
+
+        // ACT & ASSERT
+        assertThrows(ResourceNotFoundException.class, () -> bookService.findOrCreateBookByIsbn(isbn));
     }
 }

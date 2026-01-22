@@ -5,9 +5,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 // Usaremos apenas Getters, pois os dados serão imutáveis após a criação.
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor
 public class UserCreateDTO {
 
     @NotBlank(message = "O nome de usuário não pode ser vazio.")
