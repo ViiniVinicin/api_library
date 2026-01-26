@@ -10,27 +10,30 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+// Definição visual do cadeado do JWT
 @SecurityScheme(
-        name = "bearerAuth", // Nome do esquema de segurança
-        type = SecuritySchemeType.HTTP, // Tipo HTTP
-        bearerFormat = "JWT", // Formato do token
-        scheme = "bearer" // O prefixo (Bearer)
+        name = "bearerAuth",
+        type = SecuritySchemeType.HTTP,
+        bearerFormat = "JWT",
+        scheme = "bearer"
 )
 public class OpenApiConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
+                // 1. Informações de Capa da Documentação
                 .info(new Info()
-                        .title("API Library")
-                        .description("API de Livraria Pessoal com Spring Security e JWT")
-                        .version("1.0")
+                        .title("Library Management API")
+                        .description("API REST para gerenciamento de biblioteca pessoal. \n" +
+                                "Integração com Google Books, controle de leitura e segurança JWT.")
+                        .version("1.0.0")
                         .contact(new Contact()
-                                .name("Seu Nome")
-                                .email("seu.email@exemplo.com")
+                                .name("Vinicius")
+                                .email("vinicius@exemplo.com")
                         )
                 )
-                // Adiciona a exigência de segurança globalmente
+                // 2. Aplica o cadeado de segurança em todos os endpoints por padrão
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
     }
 }
