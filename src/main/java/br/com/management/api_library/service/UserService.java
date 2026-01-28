@@ -65,6 +65,16 @@ public class UserService implements UserDetailsService {
                 .collect(Collectors.toList());
     }
 
+    public List<UserResponseDTO> searchByTerm(String term) {
+        // Chama o método novo do repositório
+        List<User> users = userRepository.searchByFullNamePolyglot(term);
+
+        // Converte a lista de User para UserResponseDTO
+        return users.stream()
+                .map(this::toResponseDTO)
+                .toList();
+    }
+
     public UserResponseDTO createUser(UserCreateDTO createDTO) {
 
         userRepository.findByUsernameIgnoreCase(createDTO.getUsername())

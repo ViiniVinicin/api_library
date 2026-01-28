@@ -46,8 +46,8 @@ public class UserController {
     }
 
     @GetMapping("/search/by-fullName")
-    public ResponseEntity<UserResponseDTO> findByFullName(@RequestParam("fullName") String fullName) {
-        UserResponseDTO usersDTO = userService.getByFullName(fullName);
+    public ResponseEntity<List<UserResponseDTO>> findByFullName(@RequestParam("fullName") String fullName) {
+        List<UserResponseDTO> usersDTO = userService.searchByTerm(fullName);
         return ResponseEntity.ok(usersDTO);
     }
 
