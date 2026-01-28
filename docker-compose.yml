@@ -1,0 +1,37 @@
+services:
+  # --- Serviço 1: Banco de Dados PostgreSQL ---
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: library_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: api_library_db
+    ports:
+      - "5432:5432" # Expõe a porta para você poder acessar via DBeaver/IntelliJ se quiser
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Garante que os dados não sumam se desligar o container
+
+  # --- Serviço 2: Sua API Spring Boot ---
+  api-library:
+    build: . # Constrói a imagem usando o Dockerfile da pasta atual
+    container_name: library_api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-db # Só inicia depois que o banco subir
+    environment:
+      # Força o perfil de produção
+      SPRING_PROFILES_ACTIVE: prod
+
+      # Injeta as configurações do banco para o application-prod.properties ler
+      DB_URL: jdbc:postgresql://postgres-db:5432/api_library_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: 123
+
+      # Injeta sua chave do JWT e Google (coloquei a do seu log, mas idealmente seriam segredos)
+      # Se você usou @Value("${...}") para a chave do Google, precisaria injetar aqui também
+      # EXEMPLO: GOOGLE_API_KEY: AIzaSy...
+
+volumes:
+  postgres_data:
