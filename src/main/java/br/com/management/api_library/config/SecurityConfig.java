@@ -1,4 +1,4 @@
-package br.com.management.api_library.config; // Seu pacote config
+package br.com.management.api_library.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,6 +7,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final SecurityFilter securityFilter;
+
     public SecurityConfig(SecurityFilter securityFilter) {
         this.securityFilter = securityFilter;
     }
@@ -25,15 +27,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-
+                .csrf(AbstractHttpConfigurer::disable) // Desativa CSRF (padrão para APIs Stateless)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
                 .authorizeHttpRequests(authorize -> authorize
-                        // Endpoints públicos
-                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/library_api/users").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/library_api/books/**").permitAll()
+                        // 1. DOCUMENTAÇÃO (SWAGGER) - LIBERADO
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
@@ -41,13 +38,26 @@ public class SecurityConfig {
                                 "/api-docs/**"
                         ).permitAll()
 
-                        // Endpoints protegidos
-                        .requestMatchers("/library_api/shelf/**").authenticated()
+                        // 2. ENDPOINTS PÚBLICOS (Qualquer um acessa)
+                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll() // Login
+                        .requestMatchers(HttpMethod.POST, "/library_api/users").permitAll() // Criar conta (Cadastro)
+                        .requestMatchers(HttpMethod.GET, "/library_api/books/**").permitAll() // Ver catálogo de livros
+
+                        // 3. REGRAS DE USUÁRIOS (A Lógica Social)
+                        // Apenas ADMIN pode ver a lista completa (findAll)
+                        .requestMatchers(HttpMethod.GET, "/library_api/users").hasRole("ADMIN")
+                        // Qualquer usuário logado pode buscar ou ver perfil específico (search, id, etc)
+                        .requestMatchers(HttpMethod.GET, "/library_api/users/**").authenticated()
+
+                        // 4. ADMINISTRAÇÃO DE LIVROS (Apenas Admin altera o catálogo)
                         .requestMatchers(HttpMethod.POST, "/library_api/books").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/library_api/books/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/library_api/books/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/library_api/users/**").authenticated()
 
+                        // 5. MINHA ESTANTE (Pessoal e Protegido)
+                        .requestMatchers("/library_api/shelf/**").authenticated()
+
+                        // 6. QUALQUER OUTRA ROTA PRECISA DE LOGIN
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
