@@ -27,7 +27,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // Desativa CSRF (padrão para APIs Stateless)
+                .csrf(AbstractHttpConfigurer::disable) // Desativa CSRF
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         // 1. DOCUMENTAÇÃO (SWAGGER) - LIBERADO
@@ -40,24 +40,32 @@ public class SecurityConfig {
 
                         // 2. ENDPOINTS PÚBLICOS (Qualquer um acessa)
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll() // Login
-                        .requestMatchers(HttpMethod.POST, "/library_api/users").permitAll() // Criar conta (Cadastro)
+                        .requestMatchers(HttpMethod.POST, "/auth/register").permitAll() // NOVO: Registro Público
                         .requestMatchers(HttpMethod.GET, "/library_api/books/**").permitAll() // Ver catálogo de livros
 
-                        // 3. REGRAS DE USUÁRIOS (A Lógica Social)
-                        // Apenas ADMIN pode ver a lista completa (findAll)
+                        // 3. GESTÃO DE USUÁRIOS (ADMINISTRAÇÃO)
+                        // Criar usuário pela rota administrativa agora é só ADMIN
+                        .requestMatchers(HttpMethod.POST, "/library_api/users").hasRole("ADMIN")
+                        // Listar todos os usuários agora é só ADMIN
                         .requestMatchers(HttpMethod.GET, "/library_api/users").hasRole("ADMIN")
-                        // Qualquer usuário logado pode buscar ou ver perfil específico (search, id, etc)
+                        // Deletar usuário -> Só ADMIN (Isso impede que usuários apaguem uns aos outros)
+                        .requestMatchers(HttpMethod.DELETE, "/library_api/users/**").hasRole("ADMIN")
+                        // Alterar usuário -> Somente admin pode alterar todos e cada um altera o seu
+                        .requestMatchers(HttpMethod.PUT, "/library_api/users/**").authenticated()
+
+                        // 4. PERFIL E BUSCA SOCIAL
+                        // Qualquer usuário logado pode buscar ou ver perfil específico
                         .requestMatchers(HttpMethod.GET, "/library_api/users/**").authenticated()
 
-                        // 4. ADMINISTRAÇÃO DE LIVROS (Apenas Admin altera o catálogo)
+                        // 5. ADMINISTRAÇÃO DE LIVROS (Apenas Admin altera o catálogo)
                         .requestMatchers(HttpMethod.POST, "/library_api/books").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/library_api/books/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/library_api/books/**").hasRole("ADMIN")
 
-                        // 5. MINHA ESTANTE (Pessoal e Protegido)
+                        // 6. MINHA ESTANTE (Pessoal e Protegido)
                         .requestMatchers("/library_api/shelf/**").authenticated()
 
-                        // 6. QUALQUER OUTRA ROTA PRECISA DE LOGIN
+                        // 7. QUALQUER OUTRA ROTA PRECISA DE LOGIN
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);

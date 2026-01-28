@@ -2,6 +2,7 @@ package br.com.management.api_library.controller;
 
 import br.com.management.api_library.dto.UserCreateDTO;
 import br.com.management.api_library.dto.UserResponseDTO;
+import br.com.management.api_library.model.User;
 import br.com.management.api_library.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -11,6 +12,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -33,10 +36,11 @@ public class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     // 2. Descreve o que o método faz
-    @Operation(summary = "Cadastrar novo usuário", description = "Cria um usuário na base de dados com as roles padrão.")
+    @Operation(summary = "Cadastrar novo usuário (Admin)", description = "Cria um usuário na base de dados (Requer permissão de ADMIN).")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
-            @ApiResponse(responseCode = "422", description = "Erro de validação nos dados (ex: email duplicado)")
+            @ApiResponse(responseCode = "422", description = "Erro de validação nos dados (ex: email duplicado)"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado (apenas Admins podem usar esta rota)")
     })
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserCreateDTO userCreateDTO) {
         UserResponseDTO createdUser = userService.createUser(userCreateDTO);
@@ -50,7 +54,7 @@ public class UserController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos", description = "Retorna a lista completa de usuários cadastrados.")
+    @Operation(summary = "Listar todos", description = "Retorna a lista completa de usuários cadastrados (Requer permissão de ADMIN).")
     public ResponseEntity<List<UserResponseDTO>> findAll() {
         List<UserResponseDTO> usersDTO = userService.getAllUsers();
         return ResponseEntity.ok(usersDTO);
@@ -64,14 +68,38 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Atualizar usuário", description = "Atualiza os dados de um usuário existente pelo ID.")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UserCreateDTO userCreateDTO) {
+    @Operation(summary = "Atualizar usuário", description = "Atualiza os dados. Regra: Usuários comuns só alteram o próprio perfil. Admins alteram qualquer um.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Você tentou alterar um perfil que não é o seu")
+    })
+    public ResponseEntity<UserResponseDTO> updateUser(
+            @PathVariable Long id,
+            @Valid @RequestBody UserCreateDTO userCreateDTO,
+            @AuthenticationPrincipal User userLogado // <--- Injetamos o usuário logado para validar
+    ) {
+        // --- LÓGICA DE SEGURANÇA ---
+
+        // 1. Verifica se quem está logado é ADMIN
+        boolean isAdmin = userLogado.getRoles().stream()
+                .anyMatch(role -> role.getName().equalsIgnoreCase("ROLE_ADMIN"));
+
+        // 2. Verifica se o ID que ele quer mexer é o dele mesmo
+        boolean isOwner = userLogado.getId().equals(id);
+
+        // 3. REGRA DE OURO: Se não for Admin E não for o Dono -> PROIBIDO
+        if (!isAdmin && !isOwner) {
+            // Lança erro 403 Forbidden (precisa ter configurado o GlobalHandlerException para capturar AccessDeniedException)
+            throw new AccessDeniedException("Você não tem permissão para alterar os dados de outro usuário.");
+        }
+
+        // Se passou, executa a atualização
         UserResponseDTO updatedUser = userService.updateUser(id, userCreateDTO);
         return ResponseEntity.ok(updatedUser);
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Deletar usuário", description = "Remove permanentemente um usuário do sistema.")
+    @Operation(summary = "Deletar usuário", description = "Remove permanentemente um usuário do sistema (Apenas ADMIN).")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
