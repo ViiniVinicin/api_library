@@ -4,7 +4,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -31,15 +30,18 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(authorize -> authorize
-                        // 2. FALTOU ISSO: Liberar o endpoint de Login!
+                        // Endpoints públicos
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-
-                        // Seus outros endpoints públicos
                         .requestMatchers(HttpMethod.POST, "/library_api/users").permitAll()
                         .requestMatchers(HttpMethod.GET, "/library_api/books/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/api-docs/**"
+                        ).permitAll()
 
-                        // Seus endpoints protegidos (estão corretos)
+                        // Endpoints protegidos
                         .requestMatchers("/library_api/shelf/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/library_api/books").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/library_api/books/**").hasRole("ADMIN")
