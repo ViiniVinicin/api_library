@@ -21,7 +21,7 @@ O foco principal do desenvolvimento foi a aplicação de **Arquitetura em Camada
 ### ⭐️ Funcionalidades Principais
 * **Autenticação e Segurança:** Login e Cadastro com JWT (JSON Web Token) e Spring Security.
 * **Gestão de Livros:** CRUD completo de livros.
-* **Integração Externa:** Consumo da Google Books API via `WebClient` para preenchimento automático de dados.
+* **Integração Externa:** Consumo da Google Books API via `RestClient` para preenchimento automático de dados.
 * **Controle de Leitura:** Reviews, Notas e Status de leitura.
 * **Documentação Viva:** Interface Swagger UI (OpenAPI 3) para testes interativos.
 
@@ -35,7 +35,7 @@ O foco principal do desenvolvimento foi a aplicação de **Arquitetura em Camada
     * *Dev:* H2 Database (In-Memory)
     * *Prod:* PostgreSQL (via Docker)
 * **Segurança:** Spring Security, JWT (Auth0)
-* **Cliente HTTP:** WebClient (Reativo)
+* **Cliente HTTP:** RestClient (Reativo)
 * **Testes:** JUnit 5, Mockito, MockWebServer
 * **DevOps:** Docker, Docker Compose
 * **Documentação:** SpringDoc (Swagger)
