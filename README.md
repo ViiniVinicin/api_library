@@ -113,7 +113,7 @@ A API é totalmente documentada com OpenAPI 3.
 * **Autenticação:** Clique no botão **Authorize** (cadeado verde) e insira o token JWT recebido no login.
 ![img_6.png](img_6.png)
 * **Interface:** Permite testar requisições diretamente pelo navegador.
-<img width="1414" height="774" alt="image" src="https://github.com/user-attachments/assets/68128a45-1d25-4372-8d55-b518e9a4d449" />
+<img width="1300" height="774" alt="image" src="https://github.com/user-attachments/assets/68128a45-1d25-4372-8d55-b518e9a4d449" />
 
 
 ## 📞 Contato
